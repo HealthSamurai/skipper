@@ -1,0 +1,60 @@
+{ns skipper.res
+
+ probe
+ {:zen/tags #{zen/schema}
+  :type zen/map
+  :keys {:initialDelaySeconds {:type zen/integer}
+         :timeoutSeconds      {:type zen/integer}
+         :periodSeconds       {:type zen/integer}
+         :failureThreshold    {:type zen/integer}
+         :httpGet {:type zen/map
+                   :keys {:scheme {:type zen/string}
+                          :path   {:type zen/string}
+                          :port   {:type zen/integer}}}}}
+
+ stateful
+ {:zen/tags #{zen/schema}
+  :type zen/map
+  :keys
+  {:image     {:type zen/string}
+   :labels    {:type zen/map
+               :values {:type zen/string}}
+   :command   {:type zen/vector
+               :every {:type zen/string}}
+   :args      {:type zen/vector
+               :every {:type zen/string}}
+   :http {:type zen/map
+          :values {:type zen/map
+                   :keys {:port {:type zen/integer}
+                          :host {:type zen/string}}}}
+   ;; TODO: do we need this?
+   :expose {:type zen/map
+            :values {:type zen/map
+                     :keys {:port {:type zen/integer}
+                            :host {:type zen/string}}}}
+
+   :secrets {:type zen/map
+             :values {:type zen/any}}
+   ;; TODO: add schema
+   :resources {:type zen/any}
+   :readinessProbe {:type zen/map
+                    :confirms #{probe}}
+
+   :configs
+   {:type zen/map
+    :values {:type  zen/any}}
+   :files    {:type zen/map
+              :values {:type zen/map
+                       :keys {:path {:type zen/string}
+                              :mode {:type zen/number}
+                              :data {:type zen/any}}}}
+   :volumes
+   {:type zen/map
+    :values {:type zen/map
+             :keys {;; TODO: remove
+                    :name {:type zen/string}
+                    :emptyDir {:type zen/any}
+                    :mount {:type zen/string}
+                    :subPath {:type zen/string}
+                    :storage {:type zen/string}
+                    :class {:type zen/string}}}}}}}

@@ -1,0 +1,19 @@
+{ns k8s.crd
+
+ resource
+ {:zen/tags #{zen/schema}
+  :type zen/map
+  :keys  {:metadata   {:confirms #{k8s.v1/ObjectMeta}}
+          :apiVersion {:type zen/string}
+          :kind {:type zen/string}}}
+
+ def {:zen/tags #{zen/tag}}
+
+ exporter {:zen/tags #{zen/tag}}
+
+ job
+ {:zen/tags #{zen/tag zen/schema}
+  :type zen/map
+  :keys {:status {:type zen/map
+                  :keys {:status {:type zen/string}}}}}
+ }

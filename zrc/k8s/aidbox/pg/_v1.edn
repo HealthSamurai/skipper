@@ -1,0 +1,122 @@
+{ns k8s.aidbox.pg.v1
+
+ import #{k8s.crd}
+
+ Pg
+ {:zen/tags #{zen/schema k8s.crd/def}
+  :zen/desc "PostgreSQL operator"
+  :type zen/map
+  :confirms #{k8s.crd/resource}
+  :gcp/apis #{:gcp.iam.v1 :gcp.storage.v1}
+  :k8s.crd/additionalPrinterColumns [{:name "status"  :type "string" :jsonPath ".status.status"}
+                                     {:name "version" :type "string" :jsonPath ".spec.version"}
+                                     {:name "size"    :type "string" :jsonPath ".spec.size"}
+                                     {:name "age"     :type "date"   :jsonPath ".metadata.creationTimestamp"}
+                                     {:name "error"   :type "string" :jsonPath ".status.error"}]
+  :k8s.crd/subresources {:status {}}
+  :k8s.crd/loops
+  {:status {}}
+
+  :keys {:spec {:type zen/map
+                :require #{:size :version :memory :cpu}
+                :keys {:size    {:type zen/string}
+                       :version {:type zen/string}
+                       :cpu     {:type zen/integer}
+                       :memory  {:type zen/number
+                                 :zen/desc "In Gigabytes"}
+                       :config  {:type zen/map
+                                 :values {:type zen/any}}}}
+         :status {:type zen/map
+                  :keys {:status      {:type zen/string}
+                         :error       {:type zen/string}
+                         :conditions  {:type zen/map
+                                       :values {:type zen/any}}}}}}
+
+
+ PgInstance
+ {:zen/tags #{zen/schema k8s.crd/def}
+  :zen/desc "PostgreSQL Instance - start and configure postgresql"
+  :type zen/map
+  :confirms #{k8s.crd/resource}
+  :k8s.crd/additionalPrinterColumns [{:name "status"  :type "string" :jsonPath ".status.status"}
+                                     {:name "pg"      :type "string" :jsonPath ".spec.pg"}
+                                     {:name "mode"    :type "string" :jsonPath ".spec.mode"}
+                                     {:name "name"    :type "string" :jsonPath ".spec.name"}
+                                     {:name "version" :type "string" :jsonPath ".spec.version"}
+                                     {:name "db"      :type "string" :jsonPath ".status.db_size"}
+                                     {:name "disc"    :type "string" :jsonPath ".status.disk_size"}
+                                     {:name "avail"   :type "string" :jsonPath ".status.disk_avail"}
+                                     {:name "used"    :type "string" :jsonPath ".status.disk_used"}
+                                     {:name "use"     :type "string" :jsonPath ".status.disk_use"}
+                                     {:name "age"     :type "date"   :jsonPath ".metadata.creationTimestamp"}
+                                     {:name "error"   :type "string" :jsonPath ".status.error"}]
+  :k8s.crd/subresources {:status {}}
+  :k8s.crd/loops
+  {:status {:fail {:user {:fail {:initdb {}}}}
+            :ok   {:stats {}}}}
+  :keys {:spec {:type zen/map
+                :require #{:pg :size :version}
+                :keys {:pg      {:type zen/string :zen/desc "Ref to parent"}
+                       :name    {:type zen/string}
+                       :version {:type zen/string :enum [{:value "13"}]}
+                       :size    {:type zen/string}
+                       :cpu     {:type zen/integer}
+                       :memory  {:type zen/number
+                                 :zen/desc "In Gigabytes"}
+                       :mode    {:type zen/string :enum [{:value "master"}
+                                                         {:value "replica"}]}}}
+         :status {:type zen/map
+                  :keys {:status      {:type zen/string}
+                         :size        {:type zen/string}
+                         :db_size     {:type zen/string}
+                         :disk_size   {:type zen/string}
+                         :disk_avail  {:type zen/string}
+                         :disk_used   {:type zen/string}
+                         :disk_use    {:type zen/string}
+                         :conditions  {:type zen/map
+                                       :values {:type zen/any}}}}}}
+
+ PgUser
+ {:zen/tags #{zen/schema k8s.crd/def}
+  :zen/desc "Ensure user in pg"
+  :type zen/map
+  :confirms #{k8s.crd/resource}
+  :k8s.crd/additionalPrinterColumns [{:name "status"  :type "string" :jsonPath ".status.status"}
+                                     {:name "username"    :type "string"   :jsonPath ".spec.name"}
+                                     {:name "age"     :type "date"   :jsonPath ".metadata.creationTimestamp"}
+                                     {:name "error"   :type "string" :jsonPath ".status.error"}]
+  :k8s.crd/subresources {:status {}}
+  :keys {:spec {:type zen/map
+                :require #{:name :password :pg}
+                :keys {:pg       {:type zen/string}
+                       :name     {:type zen/string}
+                       :password {:type zen/string}}}
+         :status {:type zen/map
+                  :keys {:status      {:type zen/string}
+                         :hash        {:type zen/string}
+                         :password    {:type zen/string}
+                         :error       {:type zen/string}}}}}
+
+
+ PgConfig
+ {:zen/tags #{zen/schema k8s.crd/def}
+  :zen/desc "PostgreSQL Config. Loop over config. Check diff and apply. Restart postgresql if needed"
+  :type zen/map
+  :confirms #{k8s.crd/resource}
+  :k8s.crd/additionalPrinterColumns [{:name "status"  :type "string" :jsonPath ".status.status"}
+                                     {:name "age"     :type "date"   :jsonPath ".metadata.creationTimestamp"}
+                                     {:name "error"   :type "string" :jsonPath ".status.error"}]
+  :k8s.crd/subresources {:status {}}
+
+  :k8s.crd/loops
+  {:status {}}
+
+  :keys {:spec {:type zen/map
+                :require #{:pg}
+                :keys {:pg      {:type zen/string}
+                       :config  {:type zen/map
+                                 :values {:type zen/any}}}}
+         :status {:type zen/map
+                  :keys {:status      {:type zen/string}
+                         :config      {:type zen/map
+                                       :values {:type zen/any}}}}}}}

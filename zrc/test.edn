@@ -1,0 +1,134 @@
+{ns test
+
+ import #{fhir zen.fhir
+          fhir.ru.core.address}
+
+ CorePatient
+ {:zen/tags #{zen.fhir/profile-schema zen/schema}
+  :zen/desc "Пациент"
+  :zen.fhir/version "0.5.8"
+  :confirms #{fhir/Patient}
+  :zen.fhir/id "core-patient"
+  :zen.fhir/name "CorePatient"
+  :zen.fhir/type "Patient"
+  :zen.fhir/profileUri "http://fhir.ru/core/sd/core-patient"
+  :type zen/map
+  :keys {:identifier {:zen/desc "Идентификаторы пациента"
+                      :type zen/vector
+                      :every {:confirms #{fhir/Identifier}
+                              :type zen/map
+                               :require #{:type :system :value}
+                                :keys {:type {:type zen/map
+                                              :zen/desc "Тип идентификатора"
+                                              :zen.fhir/value-set {:symbol CoreVsIdentifierType :strength :required}
+                                              :keys {:coding {:type zen/vector
+                                                              :zen/desc "vs: http://fhir.ru/core/vs/core-vs-identifier-type"
+                                                              :every {:confirms #{fhir/Coding}
+                                                                      :type zen/map
+                                                                      :keys {:system {:type zen/string}
+                                                                             :code {:type zen/string}
+                                                                             :display {:type zen/string}}}}
+                                                     :text {:type zen/string}}}
+                                       :system {:type zen/string}
+                                      :value {:type zen/string}
+
+                                       }}
+                      :slicing
+                      {:slices
+                       {"PassportRF"
+                        {:zen/desc "Паспорт РФ"
+                         :filter
+                         {:engine :match
+                          :match {:type {:coding #{{:code "PPN"
+                                                    :display "Passport number"
+                                                    :system "http://terminology.hl7.org/CodeSystem/v2-0203"}}}}}
+                         :schema {:type zen/vector, :maxItems 1
+                                  :every {:type zen/map
+                                          :require #{:type :system :value}
+                                          :match {:type {:text "Паспорт гражданина Российской Федерации"
+                                                         :coding #{{:code "PPN"
+                                                                    :display "Passport number"
+                                                                    :system "http://terminology.hl7.org/CodeSystem/v2-0203"}
+                                                                   {:code "1"
+                                                                    :display "Паспорт гражданина Российской Федерации"
+                                                                    :system "http://fhir.ru/core/cs/core-cs-nsi-identity-document"}}}
+                                                  :system "https://fhir.ru/id/passport-rf"}}}}
+                        "INN"
+                        {:zen/desc "Идентификационный номер налогоплательщика — цифровой код, упорядочивающий учёт налогоплательщиков в Российской Федерации.
+                         Присваивается налоговой записи как юридических, так и физических лиц Федеральной налоговой службой России."
+                         :schema {:type zen/vector, :maxItems 1}
+                         :filter
+                         {:engine :match
+                          :match {:system "https://fhir.ru/id/inn"}}}
+                        "SNILS"
+                        {:zen/desc "Страховой номер индивидуального лицевого счёта, СНИЛС — уникальный номер индивидуального лицевого счёта
+                         застрахованного лица в системе обязательного пенсионного страхования"
+                         :schema {:type zen/vector, :maxItems 1}
+                         :filter
+                         {:engine :match
+                          :match {:system "https://fhir.ru/id/snils"}}}
+                        "ENP"
+                        {:zen/desc "ЕНП"
+                         :schema {:type zen/vector, :maxItems 1}
+                         :filter
+                         {:engine :match
+                          :match {:system "https://fhir.ru/id/enp"}}}
+                        "BirthCertificate"
+                        {:zen/desc "Свидетельство о рождении"
+                         :schema {:type zen/vector, :maxItems 1}
+                         :filter
+                         {:engine :match
+                          :match {:system "https://fhir.ru/id/birth-certificate"}}}
+                        "InsuranceOMS"
+                        {:zen/desc "Идентификация по номеру полиса ОМС. Система идентификации - Единый реестр застрахованных ФФОМС"
+                         :schema {:type zen/vector, :maxItems 1}
+                         :filter
+                         {:engine :match
+                          :match {:system "http://fhir.ru/core/systems/ffoms-erz"}}}
+                        "Newborn"
+                        {:zen/desc "Идентификатор для новорожденного до государственной регистрации рождения (когда предъявлен полис матери)"
+                         :schema {:type zen/vector, :maxItems 1}
+                         :filter
+                         {:engine :match
+                          :match {:system "https://fhir.ru/id/newborn"}}}}}}
+         :name {:zen/desc "ФИО пациента"
+                :type zen/vector
+                :every {:confirms #{fhir/HumanName}
+                        :type zen/map
+                        :keys {:use {:confirms #{fhir/code}
+                                     :type zen/string
+                                     :zen/desc "Фиксированное значение official"}
+                               :given {:zen/desc "Имя и отчество пациента. Первым должно идти имя, вторым - отчество"
+                                       :type zen/vector
+                                       :every {:confirms #{fhir/string}
+                                               :type zen/string}}
+                               :family {:zen/desc "Фамилия пациента"
+                                        :type zen/string}}}}
+
+         :gender {:zen/desc "Пол пациента"
+                  :confirms #{fhir/code}
+                  :type zen/string
+                  :enum [{:value "male"}
+                         {:value "female"}
+                         {:value "unknown"}]
+                  :zen.fhir/value-set {:symbol CoreVsAdministrativeGender :strength :required}}
+         :address {:zen/desc "Адрес пациента"
+                   :type zen/vector
+                   :every {:confirms #{fhir.ru.core.address/CoreAddress}
+                           :type zen/map}}}}
+
+ CoreVsAdministrativeGender
+ {:zen/tags #{zen.fhir/value-set}
+  :zen/desc "Данный ValueSet отличается от стандартного ValueSet FHIR тем, что в нем отсутствует позиция \"Other\", для совместимости со Справочником НСИ Минздрава Пол пациента"
+  :zen.fhir/version "0.5.8"
+  :fhir/code-systems #{{:fhir/url "http://hl7.org/fhir/administrative-gender"
+                        :zen.fhir/content :not-present}}
+  :uri "http://fhir.ru/core/vs/core-vs-administrative-gender"}
+
+ CoreVsIdentifierType
+ {:zen/tags #{zen.fhir/value-set}
+  :zen/desc "Данный ValueSet отличается от стандартного ValueSet FHIR тем, что из него исключены некоторые значения и в него добавлены значения из справочника HL7 Version 2 Table 0203."
+  :zen.fhir/version "0.5.8"
+  :fhir/code-systems #{{:fhir/url "http://terminology.hl7.org/CodeSystem/v2-0203"
+                        :zen.fhir/content :not-present}}
+  :uri "http://fhir.ru/core/vs/core-vs-identifier-type"}}

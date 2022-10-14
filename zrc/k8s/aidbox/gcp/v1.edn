@@ -1,0 +1,48 @@
+{ns k8s.aidbox.gcp.v1
+
+ import #{k8s.crd}
+
+ Bucket
+ {:zen/tags #{zen/schema k8s.crd/def}
+  :type zen/map
+  :confirms #{k8s.crd/resource}
+  :gcp/apis #{:gcp.monitoring.v3 :gcp.storage.v1}
+  :k8s.crd/additionalPrinterColumns [{:name "status" :type "string" :jsonPath ".status.status"}
+                                     {:name "size" :type "string" :jsonPath ".status.size"}
+                                     {:name "age" :type "date" :jsonPath ".metadata.creationTimestamp"}]
+  :k8s.crd/subresources {:status {}}
+  :k8s.crd/loops
+  {:status {}}
+
+  :keys {:spec {:type zen/map
+                :require #{:project}
+                :keys {:project  {:type zen/string}
+                       :name     {:type zen/string}}}
+         :status {:type zen/map
+                  :keys {:status {:type zen/string}
+                         :bucket {:type zen/string}
+                         :size   {:type zen/string}
+                         :error  {:type zen/string}}}}}
+
+ Account
+ {:zen/tags #{zen/schema k8s.crd/def}
+  :type zen/map
+  :confirms #{k8s.crd/resource}
+  :gcp/apis #{:gcp.iam.v1 :gcp.storage.v1}
+  :k8s.crd/additionalPrinterColumns [{:name "status" :type "string" :jsonPath ".status.status"}
+                                     {:name "email" :type "string" :jsonPath ".status.email"}
+                                     {:name "secret" :type "string" :jsonPath ".status.secret"}
+                                     {:name "age" :type "date" :jsonPath ".metadata.creationTimestamp"}
+                                     {:name "error" :type "string" :jsonPath ".status.error"}]
+  :k8s.crd/subresources {:status {}}
+  :keys {:spec {:type zen/map
+                :require #{:project}
+                :keys {:bucket  {:type zen/string}
+                       :project {:type zen/string}}}
+         :status {:type zen/map
+                  :keys {:status      {:type zen/string}
+                         :name        {:type zen/string}
+                         :secret      {:type zen/string}
+                         :email       {:type zen/string}
+                         :error       {:type zen/string}
+                         :checked_at  {:type zen/string}}}}}}

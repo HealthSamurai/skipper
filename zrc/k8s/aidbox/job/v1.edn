@@ -1,0 +1,22 @@
+{ns k8s.aidbox.job.v1
+
+ import #{k8s.crd}
+
+ JobScheduler
+ {:zen/tags #{zen/schema k8s.crd/def}
+  :zen/desc ""
+  :type zen/map
+  :confirms #{k8s.crd/resource}
+  :k8s.crd/additionalPrinterColumns [{:name "status"  :type "string" :jsonPath ".status.status"}]
+  :k8s.crd/subresources {:status {}}
+  :k8s.crd/loops
+  {:status {}}
+  :keys {:spec {:type zen/map
+                :require #{:cron :template}
+                :keys {:cron {:type zen/string}
+                       :template {:type zen/map
+                                ;; HACK: fix zen -> openapi bug
+                                  :values {}}}}
+         :status {:type zen/map
+                  :keys {:lastRun {:type zen/string}
+                         :nextRun {:type zen/string}}}}}}

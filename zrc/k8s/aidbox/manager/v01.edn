@@ -1,0 +1,30 @@
+{ns k8s.aidbox.manager.v01
+
+
+ import #{k8s.crd}
+
+ AidboxManager
+ {:zen/tags #{zen/schema k8s.crd/def}
+  :zen/desc "Manage image autoupdates"
+  :type zen/map
+  :confirms #{k8s.crd/resource}
+  :k8s.crd/additionalPrinterColumns [{:name "status"  :type "string" :jsonPath ".status.status"}]
+  :k8s.crd/subresources {:status {}}
+  :k8s.crd/loops
+  {:updates {}}
+  :keys {:spec {:type zen/map
+                :keys {:imageUpdate {:type zen/map
+                                     :keys {:engine {:type zen/string
+                                                     :enum [{:value "polling"}
+                                                            {:value "schedule"}]
+                                                     :zen/desc ""}
+                                            :every {:type zen/number
+                                                    :zen/desc "Frequency in seconds"}}}
+
+                       :selector {:type zen/map
+                                  :keys {:name {:type zen/string
+                                                :zen/desc "Name of Deployment"}}}}}
+         :status {:type zen/map
+                  :keys {:status      {:type zen/string}
+                         :conditions  {:type zen/map
+                                       :values {:type zen/any}}}}}}}

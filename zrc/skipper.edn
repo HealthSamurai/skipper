@@ -1,0 +1,150 @@
+{ns     skipper
+ import #{skipper.res}
+
+ helm
+ {:zen/tags #{zen/tag zen/schema}
+  :zen/desc "HELM component"
+  :type     zen/map
+  :keys     {:version {:type zen/string}
+             :values  {:type zen/map :values {:type zen/any}}}}
+
+ deploys
+ {:zen/tags #{zen/tag zen/schema}
+  :type     zen/map
+  :keys     {:deploys {:type zen/vector :every {:type zen/symbol :tags #{skipper/deploy}}}}}
+
+ component-engine
+ {:zen/tags #{zen/tag}
+  :zen/desc "Tag for component implementation"}
+
+ maintenance-schedule
+ {:zen/tags #{zen/schema}
+  :zen/desc "Schedule day configuration"
+  :type     zen/map
+  :require  #{:from :to}
+  :keys     {:from {:type     zen/string
+                    :regex    "^([01][0-9]|2[0-3]):([0-5][0-9])$"
+                    :zen/desc "24H format"}
+             :to   {:type     zen/string
+                    :regex    "^([01][0-9]|2[0-3]):([0-5][0-9])$"
+                    :zen/desc "24H format"}}}
+
+ maintenance
+ {:zen/tags #{zen/tag zen/schema}
+  :zen/desc "Maintenance configuration"
+  :type     zen/map
+  :require  #{:tz :schedule}
+  :keys     {:tz       {:type     zen/string
+                        :zen/desc "Target timezone (Europe/London, America/New_York)"}
+             :schedule {:type zen/map
+                        :keys {:monday    {:type     zen/vector
+                                           :minItems 1
+                                           :every    {:confirms #{maintenance-schedule}}}
+                               :tuesday   {:type     zen/vector
+                                           :minItems 1
+                                           :every    {:confirms #{maintenance-schedule}}}
+                               :wednesday {:type     zen/vector
+                                           :minItems 1
+                                           :every    {:confirms #{maintenance-schedule}}}
+                               :thursday  {:type     zen/vector
+                                           :minItems 1
+                                           :every    {:confirms #{maintenance-schedule}}}
+                               :friday    {:type     zen/vector
+                                           :minItems 1
+                                           :every    {:confirms #{maintenance-schedule}}}
+                               :saturday  {:type     zen/vector
+                                           :minItems 1
+                                           :every    {:confirms #{maintenance-schedule}}}
+                               :sunday    {:type     zen/vector
+                                           :minItems 1
+                                           :every    {:confirms #{maintenance-schedule}}}}}}}
+
+ component
+ {:zen/tags   #{zen/tag zen/schema}
+  :zen/desc   "Infrabox component"
+  :type       zen/map
+  :require    #{:engine}
+  :keys       {:scale            {:type zen/integer}
+               :engine           {:type zen/symbol :tags #{component-engine}}
+               :maintenance      {:type zen/symbol :tags #{maintenance}}
+               :imagePullSecrets {:type  zen/vector
+                                  :every {:type    zen/map
+                                          :require #{:name}
+                                          :keys    {:name {:type zen/string}}}}}
+  :schema-key {:key :engine}}
+
+ deploy
+ {:zen/tags #{zen/tag zen/schema}
+  :type     zen/map
+  :require  #{:components :cluster}
+  :keys     {:common-labels {:type zen/map
+                             :key    {:type zen/keyword}
+                             :values {:type zen/string}}
+             :cluster    {:type zen/symbol :tags #{cluster}}
+             :components {:type zen/set :every {:type zen/symbol :tags #{component}}}}}
+
+ cluster
+ {:zen/tags   #{zen/tag zen/schema}
+  :zen/desc   "Infrabox cluster"
+  :type       zen/map
+  :require    #{:engine}
+  :keys       {:name    {:type zen/string}
+               :context {:type     zen/string
+                         :zen/desc "Optional, for local deploy"}
+               :cloud   {:type zen/symbol :tags #{cloud}}
+               :engine  {:type zen/symbol :tags #{cluster-engine}}}
+  :schema-key {:key :engine}}
+
+ cluster-engine
+ {:zen/tags #{zen/tag}}
+
+ k8s
+ {:zen/tags #{cluster-engine zen/schema}}
+
+ cloud
+ {:zen/tags   #{zen/tag zen/schema}
+  :zen/desc   "Infrabox cloud"
+  :type       zen/map
+  :require    #{:engine}
+  :keys       {:engine {:type zen/symbol :tags #{cloud-engine}}}
+  :schema-key {:key :engine}}
+
+ cloud-engine
+ {:zen/tags #{zen/tag}}
+
+ gcp
+ {:zen/tags #{cloud-engine zen/schema}
+  :type     zen/map
+  :require  #{:project}
+  :keys     {:project {:type zen/string}
+             :region  {:type zen/string}
+             :zone    {:type zen/string}}}
+
+ aws
+ {:zen/tags #{cloud-engine zen/schema}
+  :type     zen/map
+  :require  #{:region :account}
+  :keys     {:profile {:type zen/string}
+             :region  {:type zen/string}
+             :account {:type zen/string}}}
+
+ azure
+ {:zen/tags #{cloud-engine zen/schema}
+  :type     zen/map
+  :require  #{:subscription :resource-group}
+  :keys     {:subscription   {:type zen/string}
+             :resource-group {:type zen/string}}}
+
+ probe
+ {:zen/tags #{zen/schema}
+  :type     zen/map
+  :keys     {:initialDelaySeconds {:type zen/integer}
+             :timeoutSeconds      {:type zen/integer}
+             :periodSeconds       {:type zen/integer}
+             :failureThreshold    {:type zen/integer}
+             :httpGet             {:type zen/map
+                                   :keys {:scheme {:type zen/string}
+                                          :path   {:type zen/string}
+                                          :port   {:type zen/integer}}}}}
+
+ }

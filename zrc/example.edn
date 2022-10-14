@@ -1,0 +1,30 @@
+{ns example
+
+ import #{k8s pg3}
+
+ myservice
+ {:zen/tags #{k8s/web}
+  :url "hedge.aidbox.app"
+  :image "hedge/docker-hub"
+  :port 3000
+  :db myservice-db
+  :secrets {}
+  :envs {}}
+
+ myservice-bucket
+ {:zen/tags #{gcp/bucket}
+  :name "myservice-bucket"}
+
+ myservice-db
+ {:zen/tags #{pg3/cluster}
+  :version "13"
+  :volume   {:value 100 :unit :Tb}
+  :replicas {:a {:type :pg3/streaming-replica}
+             :b {:type :pg3/warm-replica}}
+  :config   {:shared-buffers {:value 100 :unit :Mb}}
+  :wall-g   {:bucket myservice-bucket :path "/pg"}
+  :backups  {:every {:value 1 :unit :day}}
+  :users {}
+  :databases {}
+  :migrations [{:id "12->13" :type pg3/version-migration :from "12" :to "13"}
+               {:id "vol"    :type pg3/volume-size}]}}

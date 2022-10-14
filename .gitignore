@@ -1,0 +1,17 @@
+target
+classes
+# User-specific stuff
+.idea/**
+*.iml
+**/guix.scm
+**/.envrc
+.DS_Store
+.#**
+
+# Temporary
+*~
+.calva
+.clj-kondo/.cache
+.lsp
+.cpcache
+.nrepl-port

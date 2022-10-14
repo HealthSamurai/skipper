@@ -1,0 +1,96 @@
+{:paths     ["zrc" "src" "resources"]
+ :deps      {org.clojure/clojure                          {:mvn/version "1.11.1"}
+             ;; Zen
+             zen-lang/zen                                 {:git/url "git@github.com:zen-lang/zen.git"
+                                                           :sha     "c7ee7a9cf3c0c893d40274b4350c87d8a95bb04b"}
+
+             ;; Skipper
+             cheshire/cheshire                            {:mvn/version "5.11.0"}
+             klog/klog                                    {:git/url "git@github.com:HealthSamurai/klog.git"
+                                                           :sha     "7e2ec6776458a3e8b8583819d59a281f3dbe4661"}
+             clj-commons/clj-yaml                         {:mvn/version "0.7.110"}
+             inflections/inflections                      {:mvn/version "0.14.1"}
+             clj-time/clj-time                            {:mvn/version "0.15.2"}
+
+             ;; borkdude/edamame                             {:mvn/version "1.0.0"}
+             ;; http-kit/http-kit                            {:mvn/version "2.6.0"}
+             ;; mvxcvi/puget                                 {:mvn/version "1.3.2"}
+             ;; cli-matic/cli-matic                          {:mvn/version "0.5.4"}
+             ;; org.babashka/sci                             {:mvn/version "0.4.33"}
+             ;; org.bouncycastle/bcpkix-jdk15on              {:mvn/version "1.70"}
+             ;; org.eclipse.jetty.websocket/websocket-client {:mvn/version "9.4.49.v20220914"}
+
+             }
+
+ :aliases
+ {:test
+  {:extra-deps {lambdaisland/kaocha   {:mvn/version "1.70.1086"}
+                 healthsamurai/matcho {:mvn/version "0.3.9"}}
+   :jvm-opts   ^:replace ["-XX:-OmitStackTraceInFastThrow"]
+   :main-opts  ["-m" "kaocha.runner" "--config-file" "test/test.edn"]}
+
+
+  :cider/nrepl
+  {:extra-paths ["dev" "resources" "test" "projects"]
+   :extra-deps  {nrepl/nrepl                   {:mvn/version "1.0.0"}
+                 cider/cider-nrepl             {:mvn/version "0.28.6"}
+                 babashka/process              {:mvn/version "0.2.9"}
+                 refactor-nrepl/refactor-nrepl {:mvn/version "3.5.5"}}
+   :jvm-opts    ["-XX:-OmitStackTraceInFastThrow"]
+   :main-opts   ["-m" "nrepl.cmdline"
+                 "-b" "0.0.0.0"
+                 "--middleware"
+                 "[refactor-nrepl.middleware/wrap-refactor,cider.nrepl/cider-middleware]"]}
+
+  :native-image
+  {:main-opts  ["-m" "clj.native-image"
+                "infrab.core"
+                "--no-fallback"
+                "--enable-https"
+                "--enable-http"
+                "--enable-url-protocols=http,https"
+                "--report-unsupported-elements-at-runtime"
+                "--initialize-at-run-time=org.httpkit.client.ClientSslEngineFactory$SSLHolder"
+                "--initialize-at-build-time=org.joda.time,com.fasterxml.jackson,org.postgresql.jdbc"
+                "-H:IncludeResources=.*edn"
+                "-H:Name=infrabox"
+                "-H:+ReportExceptionStackTraces"
+                "-H:+PrintAnalysisCallTree"]
+   :jvm-opts   ["-Dclojure.compiler.direct-linking=true"
+                "-Dclojure.spec.skip-macros=true"]
+   :extra-deps {clj.native-image/clj.native-image
+                {:git/url "https://github.com/taylorwood/clj.native-image.git"
+                 :sha     "4604ae76855e09cdabc0a2ecc5a7de2cc5b775d6"}
+                borkdude/clj-reflector-graal-java11-fix
+                {:mvn/version "0.0.1-graalvm-20.3.0"
+                 :exclusions  [org.graalvm.nativeimage/svm]}
+                com.github.clj-easy/graal-build-time {:mvn/version "0.1.4"}
+                borkdude/sci.impl.reflector          {:mvn/version "0.0.1"}}}
+
+  :lint {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2022.09.08"}}
+         :main-opts  ["-m" "clj-kondo.main"]}
+
+  :fmt  {:extra-deps {mvxcvi/cljstyle {:mvn/version "0.15.0"}}
+         :main-opts  ["-m" "cljstyle.main"]}
+
+  :eastwood
+  {:main-opts  ["-m" "eastwood.lint" {}]
+   :extra-deps {jonase/eastwood {:mvn/version "1.3.0"}}}
+
+  :kibit
+  {:extra-deps {jonase/kibit {:mvn/version "0.1.8"}}
+   :main-opts  ["-e"
+                "(require,'[kibit.driver,:as,k]),(k/external-run,[\"src\"],nil)"]}
+
+
+  :hsops
+  {:extra-paths ["hsops/src"]
+   :jvm-opts    ^:replace ["-XX:-OmitStackTraceInFastThrow"]}
+
+  :build
+  {:extra-paths ["build"]
+   :jvm-opts    ^:replace ["-XX:-OmitStackTraceInFastThrow"]
+   :extra-deps
+   {io.github.clojure/tools.build {:git/url "https://github.com/HealthSamurai/tools.build"
+                                   :sha     "ae0f233d380fbbf920d01690e63adf6253bc313e"}}}}
+ :mvn/repos {"maven_central" {:url "https://repo.maven.apache.org/maven2/"}}}

@@ -1,0 +1,51 @@
+{:tasks {:init        (do
+                        (def ansi-green "\u001B[32m") (def ansi-reset "\u001B[0m") (def ansi-yellow "\u001B[33m")
+                        (defn current-date
+                          []
+                          (let [date (java.time.LocalDateTime/now)
+                                formatter (java.time.format.DateTimeFormatter/ofPattern "yyyy-MM-dd HH:mm:ss")]
+                            (.format date formatter))))
+
+         :enter       (let [{:keys [name]} (current-task)] (println (clojure.core/format "%s[ ] %s %s%s" ansi-yellow name (current-date) ansi-reset)))
+         :leave       (let [{:keys [name]} (current-task)] (println (clojure.core/format "%s[✔]︎ %s %s%s" ansi-green name (current-date) ansi-reset)))
+
+         hook               {:doc "Setup git hook"
+                             :task (do (shell "cp  .hooks/pre-commit ./.git/hooks/pre-commit")
+                                       (shell "chmod +x .git/hooks/pre-commit"))}
+         build-infrabox    {:doc  "Build public infrabox jar"
+                            :task (clojure "-A:build  -X infrabox/build")}
+         build-aidboxops    {:doc  "Build private aidboxops controller"
+                             :task (clojure "-A:build  -X aidboxops/build")}
+
+         kind-proxy   {:doc  "Make kube proxy"
+                       :task (shell "kubectl proxy --port=8080 --disable-filter --context kind-kind || echo 'Please create kind cluster'")}
+
+         repl         {:doc  "Run Clojure repl for Emacs with cider"
+                       :task (clojure "-M:cider/nrepl:build")}
+
+         lint         {:doc  "Lint source code"
+                       :task (clojure "-M:lint --parallel --lint src:test --progress --fail-level error")}
+         fmt          {:doc  "Check source code formatting"
+                       :task (clojure "-M:fmt check src")}
+
+         fmt-fix      {:doc  "Fix source code formatting"
+                       :task (clojure "-M:fmt fix src")}
+
+         test         {:doc  "Run tests"
+                       :task (clojure "-M:test --skip-meta :todo")}
+
+         build-native {:doc  "Build native image"
+                       :task (clojure "-M:native-image")}
+
+         eastwood     {:doc  "Lint wrong ns names"
+                       :task (clojure "-M:test:eastwood")}
+
+         kibit        {:doc  "Lint source code and return suggestions"
+                       :task (clojure "-A:kibit")}
+
+         watson       {:doc  "Run dependcy checker"
+                       :task (clojure "-Sdeps '{:deps {io.github.clj-holmes/clj-watson {:git/tag \"v4.0.1\" :git/sha \"65d928c\"}}}' -M -m clj-watson.cli scan -p deps.edn")}
+
+
+         outdated     {:doc  "Check outdated libraries"
+                       :task (clojure " -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version \"RELEASE\"}}} '-M -m antq.core ")}}}

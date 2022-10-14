@@ -1,0 +1,28 @@
+{ns k8s.aidbox.chatops.v1
+
+ import #{k8s.crd}
+
+ command
+ {:zen/tags #{zen/tag}}
+
+ ChatopsPgRestore
+ {:zen/tags #{zen/schema k8s.crd/def command}
+  :zen/desc "..."
+  :type zen/map
+  :confirms #{k8s.crd/resource}
+  :k8s.crd/additionalPrinterColumns []
+  :k8s.crd/subresources {:status {}}
+  :k8s.crd/loops {:status {}}
+  :keys
+  {:spec
+   {:type zen/map
+    :keys {:selector
+           {:type zen/map
+            :keys {:name {:type zen/string}}}
+           :alias {:type zen/string
+                   :zen/desc "Uniq string"}}}
+   :status
+   {:type zen/map
+    :keys {:status {:type zen/string}
+           :conditions  {:type zen/map
+                         :values {:type zen/any}}}}}}}

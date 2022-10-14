@@ -1,0 +1,41 @@
+{ns k8s
+
+ list-map-keys
+ {:zen/tags #{zen/property zen/schema}
+  :type zen/vector
+  :every {:type zen/string}}
+
+ list-type
+ {:zen/tags #{zen/property zen/schema}
+  :type zen/string}
+
+ unions
+ {:zen/tags #{zen/property zen/schema}
+  :type zen/any}
+
+ patch-merge-key
+ {:zen/tags #{zen/property zen/schema}
+  :type zen/string}
+
+ patch-strategy
+ {:zen/tags #{zen/property zen/schema}
+  :type zen/string}
+
+ api
+ {:zen/tags #{zen/property zen/schema}
+  :type zen/vector
+  :every {:type zen/map
+          :keys {:group {:type zen/string}
+                 :kind {:type zen/string}
+                 :version {:type zen/string}}}}
+
+ schema
+ {:zen/tags #{zen/tag zen/schema}
+  :type zen/map}
+
+ resource
+ {:zen/tags #{zen/tag zen/schema}
+  :type zen/map}
+
+ op
+ {:zen/tags #{zen/tag}}}

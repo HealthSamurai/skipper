@@ -1,0 +1,30 @@
+(ns skipper.k8s
+  (:require
+    [cheshire.core]
+    [clojure.string :as str]
+    [inflections.core :as infl]
+    [org.httpkit.client :as http]))
+
+
+(defn k8s-request
+  [{url :url :as opts} port]
+  (let [res  (http/request (cond->
+                             (merge opts
+                                    {:url (format "http://localhost:%s%s" port url)
+                                     :headers (merge {"content-type" "application/json"
+                                                      "accept" "application/json"}
+                                                     (:headers opts))})
+                             (:body opts) (update :body cheshire.core/generate-string)))]
+    (update @res :body (fn [x] (when x (cheshire.core/parse-string x keyword))))))
+
+
+(defn plural
+  [s]
+  (when s (infl/plural (str/lower-case s))))
+
+
+(defn build-service-url
+  [{metadata :metadata :as svc}]
+  (format "http://%s.%s.svc.cluster.local:%s" (:name metadata) (:namespace metadata) (get-in svc [:spec :ports 0 :port])))
+
+

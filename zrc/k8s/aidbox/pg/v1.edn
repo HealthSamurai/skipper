@@ -1,0 +1,111 @@
+{ns k8s.aidbox.pg.v1
+
+ import #{k8s.crd}
+
+ PgBackup
+ {:zen/tags #{zen/schema k8s.crd/def k8s.crd/job}
+  :zen/desc "...."
+  :type zen/map
+  :confirms #{k8s.crd/resource}
+  :k8s.crd/additionalPrinterColumns
+  [{:name "status"  :type "string" :jsonPath ".status.status"}
+   {:name "name"  :type "string" :jsonPath ".status.conditions.detail.data.backupName"}
+   ;; {:name "start_time"  :type "string" :jsonPath ".status.conditions.detail.data.startTime"}
+   ;; {:name "finish_time"  :type "string" :jsonPath ".status.conditions.detail.data.finishTime"}
+   {:name "compressedSize"  :type "string" :jsonPath ".status.conditions.detail.data.compressedSize"}
+   {:name "size"  :type "string" :jsonPath ".status.conditions.detail.data.uncompressedSize"}]
+  :k8s.crd/subresources {:status {}}
+  :k8s.crd/loops {:status {:fail {} :ok {:detail {}}}}
+  :keys
+  {:spec
+   {:type zen/map
+    :keys {:instance {:type zen/string}
+           :selector
+           {:type zen/map
+            :keys {:name {:type zen/string}}}
+           :compression {:type zen/string
+                         :enum [{:value "lz4"}
+                                {:value "lzma"} j
+                                {:value "brotli"}]}
+           :delta {:type zen/number}}}
+   :status
+   {:type zen/map
+    :keys {:status {:type zen/string}
+           :conditions  {:type zen/map
+                         :values {:type zen/any}}}}}}
+ PgBackupDelete
+ {:zen/tags #{zen/schema k8s.crd/def k8s.crd/job}
+  :zen/desc "...."
+  :type zen/map
+  :confirms #{k8s.crd/resource}
+  :k8s.crd/additionalPrinterColumns [{:name "status"  :type "string" :jsonPath ".status.status"}]
+  :k8s.crd/subresources {:status {}}
+  :k8s.crd/loops
+  {:status {}}
+
+  :keys {:spec {:type zen/map
+                :keys {:selector {:type zen/map
+                                  :keys {:name {:type zen/string}}}
+                       :retain {:type zen/number}}}
+         :status {:type zen/map
+                  :keys {:status {:type zen/string}
+                         :conditions  {:type zen/map
+                                       :values {:type zen/any}}}}}}
+ PgRestore
+ {:zen/tags #{zen/schema k8s.crd/def k8s.crd/job}
+  :zen/desc "...."
+  :type zen/map
+  :confirms #{k8s.crd/resource}
+  :k8s.crd/additionalPrinterColumns [{:name "status"  :type "string" :jsonPath ".status.status"}]
+  :k8s.crd/subresources {:status {}}
+  :k8s.crd/loops
+  {:status
+   {:fail {}
+    :ok {:fetch {:ok {:wait {:ok {:swap {}}}}}}}}
+  :keys
+  {:spec
+   {:type zen/map
+    :keys {:instance {:type zen/string}
+           :selector
+           {:type zen/map
+            :keys {:name {:type zen/string}}}
+           :compression {:type zen/string
+                         :enum [{:value "lz4"}
+                                {:value "lzma"} j
+                                {:value "brotli"}]}
+           :delta {:type zen/number}}}
+   :status
+   {:type zen/map
+    :keys {:status {:type zen/string}
+           :conditions  {:type zen/map
+                         :values {:type zen/any}}}}}}
+
+ PgExporter
+ {:zen/tags #{zen/schema k8s.crd/def k8s.crd/exporter}
+  :zen/desc "Prometheus exporter for PostgreSQL server metrics"
+  :type zen/map
+  :confirms #{k8s.crd/resource}
+  :k8s.crd/additionalPrinterColumns [{:name "status"  :type "string" :jsonPath ".status.status"}]
+  :k8s.crd/subresources {:status {}}
+  :k8s.crd/loops
+  {:connect {}}
+  :keys
+  {:spec
+   {:type zen/map
+    :keys {:instance {:type zen/string
+                      :zen/desc "Metrics label"}
+           :database {:type zen/string
+                      :zen/desc "Default 'postgres'"}
+           :selector {:type zen/map
+                      :keys {:service {:type zen/string}}}
+           :user {:type zen/map
+                  :keys {:secret
+                         {:type zen/string
+                          :zen/desc "Secret ref with name, password"}}}
+           :queries {:type zen/map
+                     :values {:type zen/any}}}}
+   :status
+   {:type zen/map
+    :keys {:status {:type zen/string}
+           :conditions  {:type zen/map
+                         :values {:type zen/any}}}}}}}
